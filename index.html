@@ -1,0 +1,202 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>EstudaCash</title>
+<style>
+:root{--bg:#f3f7fd;--card:#fff;--tx:#0f1b33;--mu:#5b6b8a;--bl:#1d4ed8;--bl2:#3b82f6;--gr:#16a34a;--gl:#dcfce7;--rd:#dc2626;--bd:#e2e8f0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131c30;--tx:#e8eefc;--mu:#93a3c4;--bd:#243049;--bl:#60a5fa;--gl:#10321f}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131c30;--tx:#e8eefc;--mu:#93a3c4;--bd:#243049;--bl:#60a5fa;--gl:#10321f}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;padding:10px 16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:20px;color:var(--bl);cursor:pointer}.logo b{color:var(--gr)}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav button{background:none;border:0;color:var(--mu);padding:8px 10px;border-radius:10px;font:inherit;font-size:14px;cursor:pointer}
+nav button.on,nav button:hover{background:var(--gl);color:var(--gr)}
+main{max-width:920px;margin:0 auto;padding:20px 16px 60px;animation:in .3s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes sp{to{transform:rotate(360deg)}}.spin{width:48px;height:48px;border:5px solid var(--bd);border-top-color:var(--gr);border-radius:50%;animation:sp 1s linear infinite;margin:20px auto}select{width:100%;padding:12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx);margin:6px 0}.mark{text-align:center;font-weight:800;letter-spacing:3px;color:var(--rd);border:2px dashed var(--rd);border-radius:10px;padding:6px;margin:10px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.btn{background:var(--bl);color:#fff;border:0;border-radius:12px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}.btn.g{background:var(--gr)}.btn.o{background:none;color:var(--bl);border:1px solid var(--bd)}
+.hero{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border-radius:22px;padding:40px 24px;text-align:center}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,6vw,44px)}.hero .btn{background:#22c55e;margin:6px;font-size:17px}
+.stat{text-align:center}.stat b{display:block;font-size:26px;color:var(--bl)}.stat span{color:var(--mu);font-size:13px}
+.cat{cursor:pointer;text-align:center;transition:.15s}.cat:hover,.cat.on{border-color:var(--gr);background:var(--gl);transform:translateY(-3px)}.cat i{font-size:30px;font-style:normal;display:block}
+.chip{display:inline-block;padding:7px 14px;border:1px solid var(--bd);border-radius:99px;margin:3px;cursor:pointer;font-size:14px}.chip.on{background:var(--bl);color:#fff;border-color:var(--bl)}
+.opt{display:block;width:100%;text-align:left;background:var(--card);color:var(--tx);border:2px solid var(--bd);border-radius:12px;padding:14px;margin:8px 0;font:inherit;cursor:pointer;transition:.15s}
+.opt:hover:not(:disabled){border-color:var(--bl2)}.opt.ok{border-color:var(--gr);background:var(--gl)}.opt.no{border-color:var(--rd)}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar div{height:100%;background:var(--gr);transition:width .4s}
+input{width:100%;padding:12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx);margin:6px 0}
+.demo{background:#fef3c7;color:#78350f;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:14px}
+.ad{border:2px dashed var(--bd);color:var(--mu);text-align:center;padding:16px;border-radius:12px;font-size:13px;margin:14px 0}
+table{width:100%;border-collapse:collapse}td,th{padding:9px 6px;border-bottom:1px solid var(--bd);text-align:left;font-size:14px}
+.mu{color:var(--mu)}.err{color:var(--rd);font-size:14px}.big{font-size:44px;font-weight:800;color:var(--gr)}
+</style></head><body>
+<header><span class="logo" onclick="go(DB.session?'dash':'home')">🎓 Estuda<b>Cash</b></span><nav id="nav"></nav></header>
+<main id="app"></main>
+<script>
+// ---------- Dados e persistência (modo demonstração: tudo fica neste navegador) ----------
+let DB={users:{},session:null};
+try{DB=JSON.parse(localStorage.getItem('estudacash'))||DB}catch(e){}
+const save=()=>{try{localStorage.setItem('estudacash',JSON.stringify(DB))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const me=()=>DB.users[DB.session];
+const S={scr:'home',cat:'mix',df:'all',err:''};
+const CATS={mix:['🎲','Misto'],ger:['🌎','Conhecimentos gerais'],mat:['➗','Matemática'],cie:['🔬','Ciências'],his:['🏛️','História'],por:['📚','Português'],tec:['💻','Tecnologia'],log:['🧩','Lógica'],cur:['✨','Curiosidades']};
+const DF={all:'Misto',e:'Fácil',m:'Médio',h:'Difícil'},PTS={e:10,m:20,h:30};
+
+// ---------- Banco de perguntas validadas (cat, dificuldade, enunciado, alternativas, índice correto) ----------
+const B=[
+['ger','e','Qual é a capital do Brasil?',['Rio de Janeiro','São Paulo','Brasília','Salvador'],2],
+['ger','e','Qual é o maior oceano do planeta?',['Atlântico','Pacífico','Índico','Ártico'],1],
+['ger','e','Quantos continentes existem, segundo o modelo mais usado no Brasil?',['6','7','5','8'],1],
+['ger','m','Qual é o rio mais extenso do Brasil?',['São Francisco','Amazonas','Paraná','Tocantins'],1],
+['ger','m','Qual é a moeda oficial do Japão?',['Won','Iene','Yuan','Rupia'],1],
+['cie','e','Qual planeta é o mais próximo do Sol?',['Vênus','Mercúrio','Marte','Terra'],1],
+['cie','e','Qual gás as plantas absorvem na fotossíntese?',['Gás carbônico','Oxigênio','Hélio','Nitrogênio'],0],
+['cie','e','Qual é a fórmula química da água?',['H2O','CO2','NaCl','O2'],0],
+['cie','m','Qual é a unidade básica dos seres vivos?',['Átomo','Célula','Órgão','Tecido'],1],
+['cie','h','Qual é, aproximadamente, a velocidade da luz no vácuo?',['150.000 km/s','300.000 km/s','30.000 km/s','3.000.000 km/s'],1],
+['his','e','Em que ano o Brasil foi alcançado pelos portugueses (1500)?',['1500','1492','1822','1889'],0],
+['his','e','Em que ano ocorreu a Independência do Brasil?',['1808','1822','1889','1930'],1],
+['his','m','Em que ano foi proclamada a República no Brasil?',['1822','1889','1930','1964'],1],
+['his','m','Quem foi o primeiro presidente do Brasil?',['Getúlio Vargas','Deodoro da Fonseca','Dom Pedro II','Floriano Peixoto'],1],
+['his','m','Em que ano terminou a Segunda Guerra Mundial?',['1939','1945','1918','1950'],1],
+['por','m','Qual é o plural de “cidadão”?',['cidadões','cidadãos','cidadães','cidadãoes'],1],
+['por','h','Qual frase está de acordo com a norma-padrão?',['Houveram muitos problemas','Houve muitos problemas','Haviam muitos problemas','Fazem dois anos'],1],
+['por','m','Qual é um sinônimo de “efêmero”?',['Eterno','Passageiro','Forte','Antigo'],1],
+['por','m','Qual é o antônimo de “generoso”?',['Altruísta','Mesquinho','Gentil','Rico'],1],
+['por','h','Qual destas palavras é paroxítona?',['Café','Fácil','Sofá','Cajá'],1],
+['tec','e','O que significa a sigla CPU?',['Unidade Central de Processamento','Central de Programas Úteis','Controle Pessoal de Usuário','Unidade de Pixels'],0],
+['tec','e','O que é HTML?',['Banco de dados','Linguagem de marcação','Sistema operacional','Placa de vídeo'],1],
+['tec','e','Quantos bits há em 1 byte?',['4','8','16','10'],1],
+['tec','m','Qual instituição criou o Pix?',['Banco do Brasil','Banco Central do Brasil','Caixa','Nubank'],1],
+['tec','m','Qual protocolo criptografa a comunicação na web?',['HTTP','FTP','HTTPS','SMTP'],2],
+['log','e','Todos os gatos são animais e Mimi é um gato. Logo, Mimi é:',['Um animal','Uma planta','Um cachorro','Nenhuma das anteriores'],0],
+['log','e','O pai do meu pai é meu:',['Tio','Avô','Primo','Irmão'],1],
+['log','m','Qual é o menor ângulo entre os ponteiros de um relógio às 3 horas?',['60°','90°','120°','180°'],1],
+['log','h','Quantos meses do ano têm 28 dias?',['Apenas fevereiro','Todos eles','Nenhum','Seis'],1],
+['cur','e','Qual é o animal terrestre mais rápido?',['Guepardo','Leão','Cavalo','Avestruz'],0],
+['cur','m','Quantos corações tem um polvo?',['1','2','3','4'],2],
+['cur','m','Qual é o único mamífero capaz de voo verdadeiro?',['Esquilo-voador','Morcego','Pinguim','Avestruz'],1],
+['cur','m','De que cor costuma ser a “caixa-preta” dos aviões?',['Preta','Vermelha','Laranja','Amarela'],2],
+['cur','e','Qual é o maior animal do mundo?',['Elefante-africano','Baleia-azul','Tubarão-baleia','Girafa'],1]
+];
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+function opts(ans){const s=new Set([ans]);let g=0;while(s.size<4&&g++<200){const v=ans+R(1,9)*(Math.random()<.5?-1:1);if(v>=0)s.add(v)}return[...s]}
+// Gerador procedural ilimitado (matemática e lógica). A geração por IA exige servidor — ver instruções.
+function gen(cat,d){
+  if(d==='all')d=['e','m','h'][R(0,2)];const s=d==='e'?1:d==='m'?2:3;let q,ans;
+  if(cat==='log'){
+    if(d==='h'){const a=R(1,4),r=R(2,3);q=`Qual é o próximo número da sequência: ${a}, ${a*r}, ${a*r*r}, ${a*r**3}, ?`;ans=a*r**4}
+    else{const a=R(1,10),p=R(2,4+2*s);q=`Qual é o próximo número da sequência: ${a}, ${a+p}, ${a+2*p}, ${a+3*p}, ?`;ans=a+4*p}
+  }else{const t=R(0,4);
+    if(t===0){const a=R(10*s,50*s),b=R(10*s,50*s);q=`Quanto é ${a} + ${b}?`;ans=a+b}
+    else if(t===1){const a=R(30*s,90*s),b=R(5,a-1);q=`Quanto é ${a} − ${b}?`;ans=a-b}
+    else if(t===2){const a=R(2,6+3*s),b=R(3,9+3*s);q=`Quanto é ${a} × ${b}?`;ans=a*b}
+    else if(t===3){const p=[10,20,25,50][R(0,3)],n=R(1,10*s)*20;q=`Quanto é ${p}% de ${n}?`;ans=n*p/100}
+    else{const x=R(2,10+5*s),a=R(2,5+s),b=R(1,20);q=`Se ${a}x + ${b} = ${a*x+b}, qual é o valor de x?`;ans=x}
+  }
+  return mk('g:'+q,cat==='log'?'log':'mat',d,q,opts(ans).map(String),String(ans));
+}
+function mk(id,cat,d,q,o,correct){o=shuf(o);return{id,cat,d,q,o,c:o.indexOf(String(correct))}}
+function fromBank(i){const[c,d,q,o,k]=B[i];return mk('b'+i,c,d,q,o,o[k])}
+
+// Monta uma partida sem repetir perguntas já vistas pelo usuário
+function build(N=8){
+  const u=me(),seen=new Set(u.seen),ok=i=>!seen.has('b'+i);
+  let pool=shuf(B.map((_,i)=>i)).filter(i=>ok(i)&&(S.cat==='mix'||B[i][0]===S.cat)&&(S.df==='all'||B[i][1]===S.df));
+  const gens=['mat','log'].includes(S.cat)||S.cat==='mix',L=[];
+  while(L.length<N){
+    if(gens&&(S.cat!=='mix'||Math.random()<.3||!pool.length)){const g=gen(S.cat==='mix'?['mat','log'][R(0,1)]:S.cat,S.df);if(!seen.has(g.id)&&!L.some(x=>x.id===g.id))L.push(g);continue}
+    if(pool.length){L.push(fromBank(pool.shift()));continue}
+    const rest=shuf(B.map((_,i)=>i)).filter(i=>ok(i)&&!L.some(x=>x.id==='b'+i));
+    if(rest.length){L.push(fromBank(rest[0]));continue}
+    u.seen=u.seen.filter(x=>!x.startsWith('b'));S.reset=true;seen.clear();pool=shuf(B.map((_,i)=>i)).filter(i=>!L.some(x=>x.id==='b'+i))
+  }
+  return L;
+}
+
+// ---------- Autenticação (PBKDF2 + salt; demonstração local) ----------
+async function hp(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+  const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:150000,hash:'SHA-256'},k,256);
+  return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function signup(){
+  const n=$v('n').trim(),e=$v('e').trim().toLowerCase(),p=$v('p');
+  if(n.length<2||!/^\S+@\S+\.\S+$/.test(e)||p.length<8)return err('Informe nome, e-mail válido e senha com 8+ caracteres.');
+  if(DB.users[e])return err('Este e-mail já está cadastrado.');
+  const salt=[...crypto.getRandomValues(new Uint8Array(12))].join('');
+  DB.users[e]={name:n,email:e,salt,hash:await hp(p,salt),points:0,games:[],seen:[],created:Date.now()};DB.session=e;save();go('dash')}
+async function login(){
+  const e=$v('e').trim().toLowerCase(),u=DB.users[e];
+  if(!u||u.hash!==await hp($v('p'),u.salt))return err('E-mail ou senha incorretos.');
+  DB.session=e;save();go('dash')}
+function logout(){DB.session=null;save();go('home')}
+const $v=i=>document.getElementById(i).value,err=m=>{S.err=m;render()};
+
+// ---------- Partida ----------
+let G=null,T=null;
+function play(){G={L:build(),i:0,ok:0,pts:0,ans:null,left:20};startT();go('quiz')}
+function startT(){clearInterval(T);G.left=20;T=setInterval(()=>{G.left--;if(G.left<=0)answer(-1);else{const t=document.getElementById('tm');if(t)t.textContent=G.left+'s'}},1000)}
+function answer(k){
+  if(G.ans!==null)return;clearInterval(T);const q=G.L[G.i];G.ans=k;
+  if(k===q.c){G.ok++;G.gain=PTS[q.d]+Math.floor(G.left/4);G.pts+=G.gain}else G.gain=0;
+  me().seen.push(q.id);save();render()}
+function next(){
+  if(G.i+1<G.L.length){G.i++;G.ans=null;startT();render();return}
+  const u=me();u.points+=G.pts;u.games.push({t:Date.now(),cat:S.cat,df:S.df,ok:G.ok,n:G.L.length,pts:G.pts});save();go('res')}
+
+// ---------- Telas ----------
+const ad=()=>`<div class="ad">📢 Espaço reservado para anúncio — nenhuma plataforma de anúncios configurada</div>`;
+const demo=()=>`<div class="demo">⚠️ <b>Modo demonstração:</b> dados salvos apenas neste navegador. Pix, anúncios e servidor ainda não estão configurados.</div>`;
+const lvl=u=>Math.floor(u.points/200)+1;
+const fd=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+const V={
+home:()=>`<div class="hero"><h1>Estude, jogue e conquiste 💚</h1><p>Quizzes de várias áreas, pontos, rankings e, no futuro, recompensas reais via Pix.</p>
+<button class="btn" onclick="go('${DB.session?'cats':'auth'}')">▶ Jogar agora</button></div>
+<div class="grid" style="margin-top:16px">${[['🧠','Perguntas variadas','Oito áreas do conhecimento e três níveis.'],['🏆','Ranking','Compare sua pontuação com a de outros jogadores.'],['💰','Carteira','Acompanhe seus pontos e recompensas.']].map(x=>`<div class="card"><i style="font-size:30px;font-style:normal">${x[0]}</i><h3>${x[1]}</h3><span class="mu">${x[2]}</span></div>`).join('')}</div>${ad()}${demo()}`,
+auth:()=>`<div class="card" style="max-width:420px;margin:auto"><h2>${S.mode==='s'?'Criar conta':'Entrar'}</h2>
+${S.mode==='s'?'<input id="n" placeholder="Seu nome" autocomplete="name">':''}<input id="e" type="email" placeholder="E-mail" autocomplete="email"><input id="p" type="password" placeholder="Senha (mín. 8 caracteres)" autocomplete="${S.mode==='s'?'new-password':'current-password'}">
+<p class="err">${esc(S.err)}</p><button class="btn g" style="width:100%" onclick="${S.mode==='s'?'signup()':'login()'}">${S.mode==='s'?'Cadastrar':'Entrar'}</button>
+<p class="mu" style="text-align:center;cursor:pointer" onclick="S.mode='${S.mode==='s'?'l':'s'}';S.err='';render()">${S.mode==='s'?'Já tenho conta':'Ainda não tenho conta'}</p></div>${demo()}`,
+dash:u=>`<h2>Olá, ${esc(u.name)}! 👋</h2><div class="grid"><div class="card stat"><b>${u.points}</b><span>Pontos</span></div><div class="card stat"><b>${lvl(u)}</b><span>Nível</span></div><div class="card stat"><b>${u.games.length}</b><span>Partidas</span></div><div class="card stat"><b>R$ 0,00</b><span>Saldo (demo)</span></div></div>
+<div class="card"><span class="mu">Próximo nível: ${u.points%200}/200</span><div class="bar"><div style="width:${u.points%200/2}%"></div></div><br><button class="btn g" onclick="go('cats')">▶ Nova partida</button></div>${ad()}
+<div class="card"><h3>Últimas partidas</h3>${hist(u.games.slice(-3).reverse())}</div>`,
+cats:()=>`<h2>Escolha uma categoria</h2><div class="grid">${Object.entries(CATS).map(([k,v])=>`<div class="card cat ${S.cat===k?'on':''}" onclick="S.cat='${k}';render()"><i>${v[0]}</i>${v[1]}</div>`).join('')}</div>
+<div class="card"><b>Dificuldade</b><br>${Object.entries(DF).map(([k,v])=>`<span class="chip ${S.df===k?'on':''}" onclick="S.df='${k}';render()">${v}</span>`).join('')}
+<p class="mu">Pontos por acerto: fácil 10, médio 20, difícil 30, mais até 5 de bônus por rapidez. Cada partida tem 8 perguntas.</p><button class="btn g" onclick="play()">Começar</button></div>`,
+quiz:()=>{const q=G.L[G.i],a=G.ans!==null;return`<div class="card"><div style="display:flex;justify-content:space-between"><span class="mu">Pergunta ${G.i+1}/${G.L.length} · ${CATS[q.cat][1]} · ${DF[q.d]}</span><b id="tm">${a?'':G.left+'s'}</b></div>
+<div class="bar"><div style="width:${(G.i+(a?1:0))/G.L.length*100}%"></div></div><h2>${esc(q.q)}</h2>
+${q.o.map((o,k)=>`<button class="opt ${a?(k===q.c?'ok':k===G.ans?'no':''):''}" ${a?'disabled':''} onclick="answer(${k})">${esc(o)}</button>`).join('')}
+${a?`<p>${G.ans===q.c?`✅ Correto! +${G.gain} pontos`:`${G.ans===-1?'⏰ Tempo esgotado.':'❌ Errou.'} Resposta correta: <b>${esc(q.o[q.c])}</b>`}</p><button class="btn" onclick="next()">${G.i+1<G.L.length?'Próxima →':'Ver resultado'}</button>`:''}</div>`},
+res:()=>`<div class="card" style="text-align:center"><div class="big">+${G.pts}</div><h2>${G.ok} de ${G.L.length} acertos ${G.ok===G.L.length?'🏅 Nota 10!':G.ok>=5?'👏':'💪'}</h2>${S.reset?'<p class="mu">Você já viu todo o banco fixo; ele foi reiniciado para você.</p>':''}
+<button class="btn g" onclick="play()">Jogar de novo</button> <button class="btn o" onclick="go('rank')">Ver ranking</button></div>${ad()}`,
+rank:u=>{const l=Object.values(DB.users).sort((a,b)=>b.points-a.points).slice(0,20);return`<h2>🏆 Ranking</h2>${demo()}<div class="card"><p class="mu">Neste modo, o ranking mostra apenas contas criadas neste navegador. Um ranking global exige o servidor.</p><table><tr><th>#</th><th>Jogador</th><th>Nível</th><th>Pontos</th></tr>${l.map((x,i)=>`<tr ${x.email===u.email?'style="font-weight:700;color:var(--gr)"':''}><td>${i+1}</td><td>${esc(x.name)}</td><td>${lvl(x)}</td><td>${x.points}</td></tr>`).join('')}</table></div>`},
+prof:u=>{const n=u.games.reduce((a,g)=>a+g.n,0),k=u.games.reduce((a,g)=>a+g.ok,0);return`<h2>Perfil</h2><div class="card"><h3>${esc(u.name)}</h3><p class="mu">${esc(u.email)} · membro desde ${new Date(u.created).toLocaleDateString('pt-BR')}</p>
+<div class="grid"><div class="stat"><b>${u.points}</b><span>Pontos</span></div><div class="stat"><b>${lvl(u)}</b><span>Nível</span></div><div class="stat"><b>${n?Math.round(k/n*100):0}%</b><span>Acertos</span></div></div><br><button class="btn o" onclick="logout()">Sair</button> <button class="btn o" style="color:var(--rd)" onclick="if(confirm('Excluir sua conta e todos os dados?')){delete DB.users[DB.session];logout()}">Excluir conta</button></div>`},
+wal:u=>`<h2>💰 Carteira</h2>${demo()}<div class="grid"><div class="card stat"><b>${u.points}</b><span>Pontos acumulados</span></div><div class="card stat"><b>R$ 0,00</b><span>Saldo disponível para saque</span></div></div>
+<div class="card"><h3>Requisitos para saque via Pix</h3><ul><li>❌ Provedor de pagamentos Pix: <b>não configurado</b></li><li>❌ Verificação de identidade (KYC) e chave Pix: <b>não implementadas</b></li><li>❌ Taxa de conversão de pontos: <b>a definir</b> após somar custos de IA, hospedagem, anúncios e tarifas de pagamento</li><li>❌ Valor mínimo de saque: <b>a definir</b></li></ul><p class="mu">Seus pontos ainda não geram saldo real. Você pode ver, em uma tela separada e claramente marcada, como seria o fluxo de um saque.</p><button class="btn o" onclick="S.sim=0;go('sim')">🧪 Ver simulação de saque Pix</button></div>${ad()}
+<div class="card"><h3>Histórico de pontos</h3>${u.games.length?`<table>${u.games.slice().reverse().map(g=>`<tr><td>${fd(g.t)}</td><td>Partida (${CATS[g.cat][1]})</td><td style="color:var(--gr)">+${g.pts} pts</td></tr>`).join('')}</table>`:'<p class="mu">Sem transações ainda.</p>'}</div>`,
+hst:u=>`<h2>Histórico de partidas</h2><div class="card">${hist(u.games.slice().reverse())}</div>`
+};
+const hist=l=>l.length?`<table><tr><th>Data</th><th>Categoria</th><th>Acertos</th><th>Pontos</th></tr>${l.map(g=>`<tr><td>${fd(g.t)}</td><td>${CATS[g.cat][1]} · ${DF[g.df]}</td><td>${g.ok}/${g.n}</td><td>+${g.pts}</td></tr>`).join('')}</table>`:'<p class="mu">Nenhuma partida ainda. Jogue a primeira!</p>';
+S.sim=0;
+const mask=k=>k.length>6?k.slice(0,3)+'***'+k.slice(-2):'***';
+function simGo(n){
+  if(n===1){const v=parseFloat($v('sv').replace(',','.'));if(!(v>=1))return err('Informe um valor válido (mínimo R$ 1,00).');if(!$v('sk').trim())return err('Informe uma chave de exemplo.');S.simv=v;S.simk=$v('sk').trim();S.simt=$v('st')}
+  S.sim=n;S.err='';render();
+  if(n===2)setTimeout(()=>{if(S.sim===2&&S.scr==='sim')simGo(3)},2200)}
+V.sim=()=>{
+  const b='<div class="demo" style="font-weight:700">🧪 SIMULAÇÃO: nenhum dinheiro é enviado e seu saldo e seus pontos não mudam. Não digite dados reais.</div>',m=S.simv?'R$ '+S.simv.toFixed(2).replace('.',','):'';
+  if(S.sim===0)return`<h2>Simulação de saque via Pix</h2>${b}<div class="card"><label class="mu">Valor</label><input id="sv" value="20,00" inputmode="decimal"><label class="mu">Tipo de chave</label><select id="st"><option>CPF</option><option>E-mail</option><option>Telefone</option><option>Chave aleatória</option></select><label class="mu">Chave Pix (use um exemplo)</label><input id="sk" placeholder="ex.: exemplo@email.com"><p class="err">${esc(S.err)}</p><button class="btn g" onclick="simGo(1)">Continuar</button> <button class="btn o" onclick="go('wal')">Voltar</button></div>`;
+  if(S.sim===1)return`<h2>Confirmar saque</h2>${b}<div class="card"><table><tr><td class="mu">Valor</td><td><b>${m}</b></td></tr><tr><td class="mu">Chave (${esc(S.simt)})</td><td>${esc(mask(S.simk))}</td></tr><tr><td class="mu">Taxa</td><td>R$ 0,00 (exemplo)</td></tr></table><br><button class="btn g" onclick="simGo(2)">Confirmar (simulado)</button> <button class="btn o" onclick="simGo(0)">Editar</button></div>`;
+  if(S.sim===2)return`<h2>Processando…</h2>${b}<div class="card" style="text-align:center"><div class="spin"></div><p class="mu">Em um sistema real, o servidor enviaria o pedido ao provedor de pagamentos e aguardaria a confirmação.</p></div>`;
+  return`<h2>Comprovante</h2>${b}<div class="card"><div class="mark">SIMULAÇÃO · SEM VALOR</div><div style="text-align:center"><div class="big">✓</div><h3>Pix simulado concluído</h3></div><table><tr><td class="mu">Valor</td><td><b>${m}</b></td></tr><tr><td class="mu">Destino</td><td>${esc(S.simt)} ${esc(mask(S.simk))}</td></tr><tr><td class="mu">Data</td><td>${fd(Date.now())}</td></tr><tr><td class="mu">ID</td><td>SIM-${Date.now().toString(36).toUpperCase()}</td></tr><tr><td class="mu">Status</td><td>Simulação (nenhuma transferência feita)</td></tr></table><div class="mark">SIMULAÇÃO · SEM VALOR</div></div><div class="card"><h3>No sistema real, ainda faltariam</h3><ul><li>Provedor de pagamentos com API Pix</li><li>Verificação de identidade e checagem da chave</li><li>Débito do saldo e envio feitos só no servidor</li><li>Status pendente/confirmado por webhook do provedor</li><li>Limites, análise de fraude e registro de auditoria</li></ul><button class="btn o" onclick="simGo(0)">Refazer</button> <button class="btn g" onclick="go('wal')">Voltar à carteira</button></div>`};
+const PRIV=['dash','cats','quiz','res','rank','prof','wal','hst','sim'];
+function go(s){if(s!=='quiz')clearInterval(T);S.scr=s;S.err='';if(s==='auth'&&!S.mode)S.mode='s';render();scrollTo(0,0)}
+function render(){
+  let s=S.scr;if(PRIV.includes(s)&&!me()){S.scr=s='auth'}
+  if(s==='quiz'&&!G){S.scr=s='cats'}
+  document.getElementById('app').innerHTML=V[s](me());
+  const N=DB.session?[['dash','Painel'],['cats','Jogar'],['rank','Ranking'],['wal','Carteira'],['hst','Histórico'],['prof','Perfil']]:[['home','Início'],['auth','Entrar']];
+  document.getElementById('nav').innerHTML=N.map(([k,v])=>`<button class="${k===s?'on':''}" onclick="go('${k}')">${v}</button>`).join('');
+}
+render();
+</script></body></html>
